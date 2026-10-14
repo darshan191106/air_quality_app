@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1065288256981",
+    "project_id": "air-quality-app-d7520",
+    "storage_bucket": "air-quality-app-d7520.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065288256981:android:593641f323569c43eb015c",
+        "android_client_info": {
+          "package_name": "com.example.air_quality_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNkyKYq3_jiDspL4ek8doJJe0iRpPushg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

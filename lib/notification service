@@ -1,0 +1,197 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+/// Alert module: shows a real system notification on the device when the
+/// air quality of the viewed location becomes unhealthy.
+///
+/// This uses on-device (local) notifications, so no backend server or
+/// Firebase Cloud Function is needed. Alerts are evaluated whenever fresh
+/// AQI data is fetched by the app.
+class NotificationService {
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  static bool _initialized = false;
+
+  /// AQI above this value triggers an alert
+  /// (101+ = "Unhealthy for Sensitive Groups" and worse).
+  static const int alertThreshold = 100;
+
+  // Remembers the last alert so the same alert isn't shown repeatedly.
+  static String? _lastAlertKey;
+
+  static const AndroidNotificationDetails _androidDetails =
+      AndroidNotificationDetails(
+    'aqi_alerts',
+    'Air Quality Alerts',
+    channelDescription: 'Alerts when air quality becomes unhealthy',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+
+  static Future<void> init() async {
+    if (_initialized) return;
+    try {
+      const androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const settings = InitializationSettings(android: androidSettings);
+      await _plugin.initialize(settings);
+
+      // Android 13+ requires the user to allow notifications at runtime
+      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.requestNotificationsPermission();
+
+      _initialized = true;
+    } catch (_) {
+      // Notifications are a bonus feature: never crash the app over them.
+      _initialized = false;
+    }
+  }
+
+  /// Call this after each successful AQI fetch.
+  static Future<void> maybeAlert({
+    required String place,
+    required int aqi,
+    required String category,
+    required String advice,
+  }) async {
+    if (aqi <= alertThreshold) {
+      // Air is fine again, so allow a future alert to fire.
+      _lastAlertKey = null;
+      return;
+    }
+
+    final key = '$place|$category';
+    if (key == _lastAlertKey) return; // already alerted for this situation
+    _lastAlertKey = key;
+
+    await _show(
+      title: '⚠️ Unhealthy air: AQI $aqi',
+      body: '$place is "$category". $advice',
+    );
+  }
+
+  /// Lets you demo/test notifications even when the air is currently good.
+  static Future<void> showTestAlert() async {
+    await _show(
+      title: '🔔 Test alert',
+      body: 'Air quality alerts are working on this device.',
+    );
+  }
+
+  static Future<void> _show({
+    required String title,
+    required String body,
+  }) async {
+    if (!_initialized) await init();
+    if (!_initialized) return;
+    try {
+      await _plugin.show(
+        0,
+        title,
+        body,
+        const NotificationDetails(android: _androidDetails),
+      );
+    } catch (_) {
+      // ignore: notification failures should never break the app
+    }
+  }
+}import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+/// Alert module: shows a real system notification on the device when the
+/// air quality of the viewed location becomes unhealthy.
+///
+/// This uses on-device (local) notifications, so no backend server or
+/// Firebase Cloud Function is needed. Alerts are evaluated whenever fresh
+/// AQI data is fetched by the app.
+class NotificationService {
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  static bool _initialized = false;
+
+  /// AQI above this value triggers an alert
+  /// (101+ = "Unhealthy for Sensitive Groups" and worse).
+  static const int alertThreshold = 100;
+
+  // Remembers the last alert so the same alert isn't shown repeatedly.
+  static String? _lastAlertKey;
+
+  static const AndroidNotificationDetails _androidDetails =
+      AndroidNotificationDetails(
+    'aqi_alerts',
+    'Air Quality Alerts',
+    channelDescription: 'Alerts when air quality becomes unhealthy',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+
+  static Future<void> init() async {
+    if (_initialized) return;
+    try {
+      const androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const settings = InitializationSettings(android: androidSettings);
+      await _plugin.initialize(settings);
+
+      // Android 13+ requires the user to allow notifications at runtime
+      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.requestNotificationsPermission();
+
+      _initialized = true;
+    } catch (_) {
+      // Notifications are a bonus feature: never crash the app over them.
+      _initialized = false;
+    }
+  }
+
+  /// Call this after each successful AQI fetch.
+  static Future<void> maybeAlert({
+    required String place,
+    required int aqi,
+    required String category,
+    required String advice,
+  }) async {
+    if (aqi <= alertThreshold) {
+      // Air is fine again, so allow a future alert to fire.
+      _lastAlertKey = null;
+      return;
+    }
+
+    final key = '$place|$category';
+    if (key == _lastAlertKey) return; // already alerted for this situation
+    _lastAlertKey = key;
+
+    await _show(
+      title: '⚠️ Unhealthy air: AQI $aqi',
+      body: '$place is "$category". $advice',
+    );
+  }
+
+  /// Lets you demo/test notifications even when the air is currently good.
+  static Future<void> showTestAlert() async {
+    await _show(
+      title: '🔔 Test alert',
+      body: 'Air quality alerts are working on this device.',
+    );
+  }
+
+  static Future<void> _show({
+    required String title,
+    required String body,
+  }) async {
+    if (!_initialized) await init();
+    if (!_initialized) return;
+    try {
+      await _plugin.show(
+        0,
+        title,
+        body,
+        const NotificationDetails(android: _androidDetails),
+      );
+    } catch (_) {
+      // ignore: notification failures should never break the app
+    }
+  }
+}
